@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\PermissionRead;
 use App\Http\Middleware\SSOAuthenticated;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -14,6 +15,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'sso.auth' => SSOAuthenticated::class,
+            'read' => PermissionRead::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

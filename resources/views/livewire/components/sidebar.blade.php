@@ -23,12 +23,14 @@
             @endphp
             @foreach ($children as $child)
                 @if ($child->segment)
-                    <li class="menu-item">
-                        <a wire:navigate href="{{ $child->segment ?? '#' }}" class="menu-link">
-                            <i class="menu-icon tf-icons bx {{ $child->icon ?? 'bx-circle' }}"></i>
-                            <div>{{ $child->menu }}</div>
-                        </a>
-                    </li>
+                    @can('r_' . $child->segment)
+                        <li class="menu-item">
+                            <a wire:navigate href="{{ $child->segment ?? '#' }}" class="menu-link">
+                                <i class="menu-icon tf-icons bx {{ $child->icon ?? 'bx-circle' }}"></i>
+                                <div>{{ $child->menu }}</div>
+                            </a>
+                        </li>
+                    @endcan
                 @endif
             @endforeach
         @endforeach

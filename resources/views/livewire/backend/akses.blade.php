@@ -22,14 +22,14 @@
     <h4 class="fw-bold py-3 mb-2">
         <span class="text-muted fw-light">Setting /</span>
         {{ strtolower(Request::segment(1)) === 'livewire' ? $fallback : ucfirst(Request::segment(1)) }}
+        {{-- @can('c_' . Request::segment(1))
+            <button wire:click="tambah" type="button" class="btn btn-xs btn-primary rounded-1"><strong>&#10010;</strong></button>
+        @endcan --}}
     </h4>
     <div class="row">
         <div class="col-12 mb-4">
             <div class="card">
                 <div class="p-4 table-responsive text-nowrap">
-                    @can('c_' . Request::segment(1))
-                        create
-                    @endcan
                     <table class="table table-hover">
                         <thead>
                             <tr class="text-center">

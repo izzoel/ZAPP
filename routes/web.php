@@ -4,6 +4,7 @@ use App\Http\Controllers\LandingController;
 use App\Http\Controllers\sso\KeycloakController;
 use App\Livewire\Backend\Admin;
 use App\Livewire\Backend\Akses;
+use App\Livewire\Backend\Icon;
 use App\Livewire\Backend\Menu;
 use App\Livewire\Backend\Role;
 use App\Livewire\Backend\User;
@@ -19,8 +20,11 @@ Route::any('/', [LandingController::class, 'landing'])->name('landing');
 
 Route::middleware(['sso.auth'])->group(function () {
     Route::get('/admin', Admin::class);
-    Route::get('/akses', Akses::class);
-    Route::get('/menu', Menu::class);
-    Route::get('/role', Role::class);
-    Route::get('/user', User::class);
+    Route::get('/icon', Icon::class);
+    Route::middleware(['read'])->group(function () {
+        Route::get('/akses', Akses::class);
+        Route::get('/menu', Menu::class);
+        Route::get('/role', Role::class);
+        Route::get('/user', User::class);
+    });
 });

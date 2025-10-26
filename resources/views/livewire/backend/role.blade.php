@@ -21,7 +21,9 @@
     <h4 class="fw-bold py-3 mb-2">
         <span class="text-muted fw-light">Setting /</span>
         {{ strtolower(Request::segment(1)) === 'livewire' ? $fallback : ucfirst(Request::segment(1)) }}
-        <button wire:click="tambah" type="button" class="btn btn-xs btn-primary rounded-1"><strong>&#10010;</strong></button>
+        @can('c_' . Request::segment(1))
+            <button wire:click="tambah" type="button" class="btn btn-xs btn-primary rounded-1"><strong>&#10010;</strong></button>
+        @endcan
     </h4>
     <div class="row">
         <div class="col-12 mb-4">
@@ -80,8 +82,8 @@
                                     </td>
                                     <td>
                                         <div class="dropdown">
-                                            <button onclick="konfirmasiHapus({{ $role->id }}, '{{ $role->name }}')" type="button"
-                                                class="btn btn-sm btn-danger rounded-1"><strong>Hapus</strong></button>
+                                            <button onclick="konfirmasiHapus({{ $role->id }}, '{{ $role->name }}')" type="button" class="btn btn-sm btn-danger rounded-1"
+                                                @cannot('d_' . Request::segment(1))disabled @endcan><strong>Hapus</strong></button>
                                         </div>
                                     </td>
                                 </tr>

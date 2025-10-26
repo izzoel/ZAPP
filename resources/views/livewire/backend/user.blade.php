@@ -84,6 +84,16 @@
                                         </div>
                                     </td>
                                     <td class="text-start">
+                                        <input wire:model="email" type="text"
+                                            class="form-control form-control-md {{ $errors->has('email') ? 'is-invalid' : 'border border-secondary' }}" placeholder="email..">
+
+                                        <div class="invalid-feedback">
+                                            @error('email')
+                                                {{ $message }}
+                                            @enderror
+                                        </div>
+                                    </td>
+                                    <td class="text-start">
                                         <div class="d-flex justify-content-center">
                                             <div class="w-100">
                                                 <select wire:model="role" class="form-select form-select-sm {{ $errors->has('role') ? 'is-invalid' : 'border border-secondary' }}">
@@ -202,7 +212,8 @@
                                     <td>
                                         <div>
                                             <button onclick="konfirmasiHapus({{ $pengguna->id }}, '{{ $pengguna->name }}')" type="button"
-                                                class="btn btn-sm btn-danger rounded-1"><strong>Hapus</strong></button>
+                                                class="btn btn-sm btn-danger rounded-1" @cannot('d_' . Request::segment(1))disabled @endcan> <strong>Hapus</strong>
+                                            </button>
                                         </div>
                                     </td>
                                 </tr>
