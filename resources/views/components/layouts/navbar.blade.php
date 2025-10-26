@@ -57,10 +57,14 @@
                         <div class="dropdown-divider"></div>
                     </li>
                     <li>
-                        <a class="dropdown-item  d-inline-flex align-items-center" href="{{ route('logout') }}">
+                        <a class="dropdown-item  d-inline-flex align-items-center" href="{{ route('sso.logout') }}">
                             <i class="menu-icon tf-icons bx bx-door-open me-2"></i>
                             <span class="align-middle">Log Out</span>
                         </a>
+                        {{-- <a class="dropdown-item  d-inline-flex align-items-center" href="{{ route('logout') }}">
+                            <i class="menu-icon tf-icons bx bx-door-open me-2"></i>
+                            <span class="align-middle">Log Out</span>
+                        </a> --}}
                     </li>
                 </ul>
             </li>

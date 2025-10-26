@@ -42,7 +42,7 @@
                 </div>
 
                 <div class="mt-4">
-                    <a href="" class="btn btn-warning">
+                    <a href="{{ route('sso.redirect') }}" class="btn btn-warning">
                         Login SSO
                     </a>
                 </div>

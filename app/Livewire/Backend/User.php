@@ -3,21 +3,22 @@
 namespace App\Livewire\Backend;
 
 use App\Models\User as ModelUser;
+use App\Services\KeycloakService;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Livewire\Attributes\On;
 use Livewire\Attributes\Rule;
 use Spatie\Permission\Models\Role as ModelRole;
-
 class User extends Component
 {
     use WithFileUploads;
 
     public $editFieldRowId, $customAvatar, $avatarBaru, $selectedUserId;
     public $modeTambah = false;
-    public $index, $fallback, $avatars, $name, $role;
+    public $index, $fallback, $avatars, $name, $email, $role;
 
     public bool $tampil_tambah = false;
 
@@ -64,12 +65,9 @@ class User extends Component
         $this->modeTambah = false;
     }
 
-    public function ubah($id, $field, $value)
+    public function ubah($id, $field, $value,KeycloakService $keycloak)
     {
         $data = ModelUser::findOrFail($id);
-        if (!$data) {
-            return;
-        }
 
         if ($field === 'password') {
             $data->update([
@@ -83,6 +81,40 @@ class User extends Component
             $data->update([
                 $field => $value,
             ]);
+            if (in_array($field, ['name', 'email']) && $data->keycloak_id) {
+                $keycloakData = [];
+                if ($field === 'name') {
+                    $keycloakData['firstName'] = $value;
+                }
+                if ($field === 'email') {
+                    $keycloakData['email'] = $value;
+                }
+                $name = $data->name; // misal "Zulfahmi Ramadhani"
+
+                // Pisahkan berdasarkan spasi
+                $parts = explode(' ', $name);
+
+                // Ambil last word sebagai lastName
+                $lastName = array_pop($parts);
+
+                // Sisanya gabungkan sebagai firstName
+                $firstName = implode(' ', $parts);
+
+                // Jika hanya satu kata, firstName tetap isi nama, lastName kosong
+                if (empty($firstName)) {
+                    $firstName = $lastName;
+                    $lastName = '';
+                }
+
+                // Update Keycloak
+                $keycloak->updateUser($data->keycloak_id, [
+                    'firstName' => $firstName,
+                    'lastName' => $lastName,
+                    'enabled' => true, // jangan lupa
+                ]);
+                // $keycloak->updateUser($data->keycloak_id, $keycloakData);
+            }
+
             $this->dispatch('toast_success', $this->name . ' berhasil diubah');
             $this->reset(['tampil_tambah', 'name']);
         }
@@ -92,7 +124,6 @@ class User extends Component
 
     public function ubahAvatar($avatar)
     {
-
         if ($this->selectedUserId) {
             $data = ModelUser::find($this->selectedUserId);
             $data->update([
@@ -112,9 +143,6 @@ class User extends Component
     {
         $this->validateOnly('customAvatar');
 
-        // dd($this->customAvatar);
-        // Simpan file ke storage/public/img/avatars
-
         if ($this->selectedUserId) {
             $data = ModelUser::find($this->selectedUserId);
 
@@ -127,14 +155,7 @@ class User extends Component
             $filename = 'custom-avatar' . (ModelUser::count() + 1) . '.' . $this->customAvatar->getClientOriginalExtension();
             $this->customAvatar->storeAs('img/avatars/avatar/', $filename, 'public');
             $this->avatarBaru = $filename;
-            // $this->dispatch('close_modal');
-            // return;
         }
-
-        // $data = ModelUser::find(auth()->user()->id);
-        // $data->update([
-        //     'avatar' => $filename,
-        // ]);
 
         $this->dispatch('toast_success', 'Avatar berhasil diubah.');
         $this->dispatch('close_modal');
@@ -148,22 +169,6 @@ class User extends Component
             $this->name = $value;
         }
     }
-
-    // #[On('simpanPengguna')]
-    // public function simpan()
-    // {
-    //     $this->validate();
-
-    //     ModelUser::create([
-    //         'avatar' => $this->avatarBaru ?? '0.png',
-    //         'name' => $this->name,
-    //         'password' => Hash::make($this->name),
-    //         'id_role' => $this->role,
-    //     ]);
-
-    //     $this->dispatch('toast_success', 'User ' . $this->name . ' berhasil ditambahkan.');
-    //     $this->reset(['tampil_tambah', 'name', 'role']);
-    // }
 
     #[On('simpanPengguna')]
     public function simpan()

@@ -56,7 +56,8 @@
                             <tr class="text-center">
                                 <th class="col-1">#</th>
                                 <th class="col-1">Avatar</th>
-                                <th class="col-auto text-start">Username</th>
+                                <th class="col-auto text-start">Nama</th>
+                                <th class="col-auto text-start">Email</th>
                                 <th class="col-2 text-start">Role</th>
                                 <th class="col-2">Password</th>
                                 <th class="col-1">Aksi</th>
@@ -140,6 +141,21 @@
                                             <div wire:click="editRow('{{ $pengguna->id }}', 'name', '{{ $pengguna->name }}')" class="edit-icon"
                                                 style="cursor: pointer; position: relative;">
                                                 {{ $pengguna->name ?? '---' }}
+                                                <i class="bx bx-edit-alt text-warning icon-hover"></i>
+                                            </div>
+                                        @endif
+                                    </td>
+                                    <td class="text-start" x-data>
+                                        @if ($editFieldRowId == $pengguna->id . '-email')
+                                            <div class="d-flex justify-content-center">
+                                                <input wire:blur="ubah('{{ $pengguna->id }}', 'email', $event.target.value)"
+                                                    wire:keydown.enter="ubah('{{ $pengguna->id }}', 'email', $event.target.value)" class="form-control form-control-sm"
+                                                    value="{{ $pengguna->email }}" @click.outside="$wire.set('editFieldRowId', null)" />
+                                            </div>
+                                        @else
+                                            <div wire:click="editRow('{{ $pengguna->id }}', 'email', '{{ $pengguna->email }}')" class="edit-icon"
+                                                style="cursor: pointer; position: relative;">
+                                                {{ $pengguna->email ?? '---' }}
                                                 <i class="bx bx-edit-alt text-warning icon-hover"></i>
                                             </div>
                                         @endif
