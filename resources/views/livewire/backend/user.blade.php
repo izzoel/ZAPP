@@ -43,7 +43,7 @@
     <h4 class="fw-bold py-3 mb-2">
         <span class="text-muted fw-light">Setting /</span>
         {{ strtolower(Request::segment(1)) === 'livewire' ? $fallback : ucfirst(Request::segment(1)) }}
-        @can('c_' . Request::segment(1))
+        @can('c_' . strtolower($fallback))
             <button wire:ignore wire:click="tambah" type="button" class="btn btn-xs btn-primary rounded-1"><strong>&#10010;</strong></button>
         @endcan
     </h4>

@@ -6,11 +6,9 @@ use App\Models\User as ModelUser;
 use App\Services\KeycloakService;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Log;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Livewire\Attributes\On;
-use Livewire\Attributes\Rule;
 use Spatie\Permission\Models\Role as ModelRole;
 class User extends Component
 {
