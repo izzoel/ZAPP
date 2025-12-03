@@ -19,25 +19,25 @@ class UserSeeder extends Seeder
         // $userRole = Role::firstOrCreate(['name' => 'user', 'guard_name' => 'web']);
 
         // // Buat atau update Admin
-        // $admin = User::updateOrCreate(
-        //     ['email' => 'admin@mail.com'],
-        //     [
-        //         'name' => 'admin',
-        //         'password' => bcrypt('nimda'), // ganti sesuai kebutuhan
-        //         'avatar' => '0.png',
-        //     ],
-        // );
+        $admin = User::updateOrCreate(
+            ['email' => 'admin@mail.com'],
+            [
+                'name' => 'admin',
+                'password' => bcrypt('nimda'), // ganti sesuai kebutuhan
+                'avatar' => rand(0,11).'.png',
+            ],
+        );
         // $admin->syncRoles([$adminRole]); // assign role admin
 
-        // // Buat atau update User biasa
-        // $user = User::updateOrCreate(
-        //     ['email' => 'user@mail.com'],
-        //     [
-        //         'name' => 'user',
-        //         'password' => bcrypt('resu'), // ganti sesuai kebutuhan
-        //         'avatar' => '0.png',
-        //     ],
-        // );
+        // Buat atau update User biasa
+        $user = User::updateOrCreate(
+            ['email' => 'user@mail.com'],
+            [
+                'name' => 'user',
+                'password' => bcrypt('resu'), // ganti sesuai kebutuhan
+                'avatar' => rand(0,11).'.png',
+            ],
+        );
         // $user->syncRoles([$userRole]); // assign role user
     }
 }

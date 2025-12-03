@@ -21,7 +21,7 @@
         <ul class="navbar-nav flex-row align-items-center ms-auto">
             <!-- User -->
             <li class="nav-item navbar-dropdown dropdown-user dropdown">
-                <a class="nav-link dropdown-toggle hide-arrow" href="" data-bs-toggle="dropdown">
+                <a id="dropdown-control" class="nav-link dropdown-toggle hide-arrow" href="">
                     <div class="avatar avatar-online">
                         <img src="{{ asset('img/avatars/' . (auth()->user()->avatar ?? '0.png')) }}" alt="avatar-{{ auth()->user()->avatar ?? '0.png' }}"
                             class="w-px-40 h-auto rounded-circle" />
@@ -39,7 +39,6 @@
                                 </div>
                                 <div class="flex-grow-1">
                                     <span class="fw-semibold d-block">{{ ucfirst(auth()->user()->name) }}</span>
-                                    {{-- <small class="text-muted">{{ auth()->user()->role->role }}</small> --}}
                                 </div>
                             </div>
                         </a>
@@ -61,10 +60,6 @@
                             <i class="menu-icon tf-icons bx bx-door-open me-2"></i>
                             <span class="align-middle">Log Out</span>
                         </a>
-                        {{-- <a class="dropdown-item  d-inline-flex align-items-center" href="{{ route('logout') }}">
-                            <i class="menu-icon tf-icons bx bx-door-open me-2"></i>
-                            <span class="align-middle">Log Out</span>
-                        </a> --}}
                     </li>
                 </ul>
             </li>
@@ -75,6 +70,11 @@
 
 @push('js')
     <script>
+        $('#dropdown-control').on('click', function(e) {
+            e.preventDefault();
+            console.log('Dropdown user clicked');
+            $('#dropdown-control').dropdown('toggle');
+        });
         $(document).ready(function() {
             // Klik icon menu
             $('.nav-item.nav-link.px-0.me-xl-4').on('click', function(e) {

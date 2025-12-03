@@ -45,12 +45,22 @@ class User extends Component
 
     public function render()
     {
-        $data['avatars'] = $this->avatars;
-        $data['fallback'] = $this->fallback;
-        $data['penggunas'] = ModelUser::all();
-        $data['roles'] = ModelRole::all();
+        $data = [];
+        if (auth()->user()->hasRole('admin')) {
+            $data['avatars'] = $this->avatars;
+            $data['fallback'] = $this->fallback;
+            $data['penggunas'] = ModelUser::all();
+            $data['roles'] = ModelRole::all();
+        }
+        elseif (auth()->user()->hasRole('user')) {
+            $data['avatars']  = $this->avatars;
+            $data['fallback'] = $this->fallback;
+            $data['penggunas'] = ModelUser::where('id', auth()->id())->get();
+            $data['roles'] = auth()->user()->roles;
+        }
 
         return view('livewire.backend.user', $data);
+
     }
 
     public function tambah()

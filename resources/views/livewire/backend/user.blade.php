@@ -44,7 +44,7 @@
         <span class="text-muted fw-light">Setting /</span>
         {{ strtolower(Request::segment(1)) === 'livewire' ? $fallback : ucfirst(Request::segment(1)) }}
         @can('c_' . Request::segment(1))
-            <button wire:click="tambah" type="button" class="btn btn-xs btn-primary rounded-1"><strong>&#10010;</strong></button>
+            <button wire:ignore wire:click="tambah" type="button" class="btn btn-xs btn-primary rounded-1"><strong>&#10010;</strong></button>
         @endcan
     </h4>
     <div class="row">
@@ -60,7 +60,9 @@
                                 <th class="col-auto text-start">Email</th>
                                 <th class="col-2 text-start">Role</th>
                                 <th class="col-2">Password</th>
-                                <th class="col-1">Aksi</th>
+                                @can('d_' . Request::segment(1))
+                                    <th class="col-1">Aksi</th>
+                                @endcan
                             </tr>
                         </thead>
                         <tbody class="table-border-bottom-0">
@@ -209,13 +211,15 @@
 
 
                                     </td>
-                                    <td>
-                                        <div>
-                                            <button onclick="konfirmasiHapus({{ $pengguna->id }}, '{{ $pengguna->name }}')" type="button"
-                                                class="btn btn-sm btn-danger rounded-1" @cannot('d_' . Request::segment(1))disabled @endcan> <strong>Hapus</strong>
-                                            </button>
-                                        </div>
-                                    </td>
+                                    @can('d_' . Request::segment(1))
+                                        <td>
+                                            <div>
+                                                <button onclick="konfirmasiHapus({{ $pengguna->id }}, '{{ $pengguna->name }}')" type="button"
+                                                    class="btn btn-sm btn-danger rounded-1"> <strong>Hapus</strong>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    @endcan
                                 </tr>
                             @endforeach
                         </tbody>
