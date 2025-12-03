@@ -6,87 +6,91 @@ use App\Models\User;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Exceptions;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Laravel\Socialite\Facades\Socialite;
 use Spatie\Permission\Models\Role;
 class KeycloakController extends Controller
 {
-
-    public function redirect()
+    public function redirect(Request $request)
     {
+        if ($request->filled('redirect_url')) {
+            // simpan tujuan akhir setelah login
+            session(['redirect_url' => $request->get('redirect_url')]);
+        }
+
+        // Socialite akan menambahkan state CSRF otomatis
         return Socialite::driver('keycloak')->redirect();
     }
 
     public function callback(Request $request)
     {
-        $kcUser = Socialite::driver('keycloak')->user();
+        // Ambil user dari Keycloak via Socialite
+        // stateless() dipakai jika kamu tidak ingin memverifikasi state lewat session
+        // Jika kamu ingin verifikasi state pakai tanpa stateless() (default)
+        $kcUser = Socialite::driver('keycloak')->stateless()->user();
 
-        $token = $kcUser->accessTokenResponseBody['access_token'];
-        $payload = json_decode(base64_decode(explode('.', $token)[1]), true);
-        $roles = $payload['realm_access']['roles'] ?? [];
+        // Ambil token jika perlu
+        $token = $kcUser->token ?? null;
 
-        $customRoles = collect($roles)->reject(function ($role) {
-            return in_array($role, [
-                'offline_access',
-                'uma_authorization',
-                'default-roles-zapp',
-            ]);
-        })->values()->all();
+        $user = User::updateOrCreate(
+            ['email' => $kcUser->getEmail()],
+            ['name' => $kcUser->getName(),
+            'keycloak_id' => $kcUser->getId()
+            ]
+        );
 
-        $existingUser = User::where('email', $kcUser->getEmail())->first();
-
-        if ($existingUser) {
-            $existingUser->update([
-                'name' => $kcUser->getName(),
-            ]);
-            $user = $existingUser;
-        } else {
-            $user = User::create([
-                'keycloak_id' => $kcUser->getId(),
-                'name' => $kcUser->getName(),
-                'email' => $kcUser->getEmail(),
-                'avatar' => rand(0, 10) . '.png',
-            ]);
+        if ($user->wasRecentlyCreated && !$user->avatar) {
+            $user->avatar = rand(0, 11) . '.png';
+            $user->save();
         }
 
-        foreach ($customRoles as $roleName) {
-            Role::firstOrCreate(['name' => $roleName]);
-        }
-        $user->syncRoles($customRoles);
-
+        // Login user
         Auth::login($user);
 
-        Log::info('### SSO Login ###');
-        Log::info("\t+ Name\t: " . $kcUser->getName());
-        Log::info("\t+ Roles\t: " . implode(', ', $customRoles));
-        Log::info("\t+ IP\t: " . $request->ip());
-        Log::info("\t+ Time\t: " . now()->toDateTimeString());
+        Log::info('SSO Login: ' . $user->email);
 
-        return redirect('/admin');
+        // Ambil tujuan akhir dari session, default /admin
+        $redirectUrl = session()->pull('redirect_url', '/admin');
+
+        return redirect()->to($redirectUrl);
     }
 
     public function logout(Request $request)
     {
-
-        $user = Auth::user();
-        Log::info('### SSO Logout ###');
-        Log::info("\t+ Name\t: " . ($user->name ?? 'Unknown'));
-        Log::info("\t+ IP\t: " . $request->ip());
-        Log::info("\t+ Time\t: " . now()->toDateTimeString());
-
-
+        // logout lokal
+        Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        $keycloakBaseUrl = config('services.keycloak.base_url');
-        $realm = config('services.keycloak.realms');
-        $redirectUri = url('/');
+        // halaman yang akan menerima post-logout dari Keycloak
+        $postLogoutRedirect = url('/auth/logged-out');
 
-        $logoutUrl = "{$keycloakBaseUrl}/realms/{$realm}/protocol/openid-connect/logout?post_logout_redirect_uri=".urlencode($redirectUri). "&client_id=" . config('services.keycloak.client_id');
+        $logoutUrl = config('services.keycloak.base_url') .
+        '/realms/' . config('services.keycloak.realms') .
+        '/protocol/openid-connect/logout' .
+        '?post_logout_redirect_uri=' . urlencode($postLogoutRedirect) .
+        '&client_id=' . config('services.keycloak.client_id');
 
+        return redirect()->away($logoutUrl);
+    }
 
-        Auth::logout();
+    public function loggedOut()
+    {
+        // bisa diarahkan ke login page atau root
+        return redirect('/');
+    }
 
-        return redirect($logoutUrl);
+    public function cekServer()
+    {
+        try {
+            $url = env('KEYCLOAK_BASE_URL').'/realms/'. env('KEYCLOAK_REALM');
+            $response = Http::timeout(2)->get($url);
+
+            return ['online' => $response->successful()];
+        } catch (Exceptions $e) {
+            return ['online' => false];
+        }
     }
 }

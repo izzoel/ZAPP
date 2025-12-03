@@ -36,12 +36,21 @@ return [
     ],
 
     'keycloak' => [
-        'base_url'      => env('KEYCLOAK_BASE_URL', 'http://127.0.0.1:8080'),
-        'realms'        => env('KEYCLOAK_REALM', 'master'), // ← ini penting (jamak)
-        'client_id'     => env('KEYCLOAK_CLIENT_ID', 'zapp.test'),
-        'client_secret' => env('KEYCLOAK_CLIENT_SECRET', null),
-        'redirect'      => env('KEYCLOAK_REDIRECT_URI', 'http://127.0.0.1:8080/auth/keycloak/callback'),
+        'base_url' => env('KEYCLOAK_BASE_URL'),
+        'realms' => env('KEYCLOAK_REALM'),
+        'client_id' => env('KEYCLOAK_CLIENT_ID'),
+        'client_secret' => env('KEYCLOAK_CLIENT_SECRET'),
+        'redirect' => env('KEYCLOAK_REDIRECT_URI', 'http://zapp.test/auth/callback'),
     ],
+
+
+    // 'keycloak' => [
+    //     'base_url'      => env('KEYCLOAK_BASE_URL', 'http://127.0.0.1:8080'),
+    //     'realms'        => env('KEYCLOAK_REALM', 'master'), // ← ini penting (jamak)
+    //     'client_id'     => env('KEYCLOAK_CLIENT_ID', 'zapp.test'),
+    //     'client_secret' => env('KEYCLOAK_CLIENT_SECRET', null),
+    //     'redirect'      => env('KEYCLOAK_REDIRECT_URI', 'http://127.0.0.1:8080/auth/keycloak/callback'),
+    // ],
 
 
 ];

@@ -35,16 +35,16 @@
                 <div class="btn-toolbar justify-content-start" role="toolbar" aria-label="Toolbar with button groups">
                     <div class="btn-group me-2" role="group" aria-label="First group">
                         <a id="login" class="btn btn-lg btn-warning d-flex justify-content-start align-items-center" style="font-size: 1.5rem; padding: 1rem 2rem;"
-                            role="button" data-aos="fade-left">
+                            role="button" data-aos="fade-down">
                             <b><i class="bi bi-journal-richtext"></i> Login</b>
                         </a>
                     </div>
-                </div>
-
-                <div class="mt-4">
-                    <a href="{{ route('sso.redirect') }}" class="btn btn-warning">
-                        Login SSO
-                    </a>
+                    <div class="btn-group me-2" role="group" aria-label="First group">
+                        <a id="btn-sso" class="btn btn-lg btn-warning d-flex justify-content-start align-items-center" style="font-size: 1.5rem; padding: 1rem 2rem;"
+                            role="button" data-aos="fade-down" data-aos-delay="100">
+                            <b><i class="bi bi-journal-richtext"></i> Login SSO</b>
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -64,6 +64,51 @@
     <!-- Landing JS Files -->
     <script src="{{ asset('vendor/landing/js/main.js') }}"></script>
     <script src="{{ asset('vendor/landing/js/sw-login.js') }}"></script>
+
+    <script>
+        // Mencegah SweetAlert muncul saat back (bfcache)
+        window.addEventListener("pageshow", function(event) {
+            if (event.persisted) {
+                Swal.close();
+            }
+        });
+
+        $('#btn-sso').on('click', function() {
+
+            Swal.fire({
+                title: 'Menghubungi server...',
+                text: 'Mohon tunggu sebentar',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            $.ajax({
+                url: '/auth/server/cek',
+                method: 'GET',
+                success: function(data) {
+                    if (data.online) {
+                        window.location.href = "{{ route('sso.redirect') }}";
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Server SSO sedang offline',
+                            text: 'Silakan coba beberapa saat lagi.',
+                        });
+                    }
+                },
+                error: function() {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Server SSO sedang offline',
+                        text: 'Silakan coba beberapa saat lagi.',
+                    });
+                }
+            });
+        });
+    </script>
+
 </body>
 
 </html>

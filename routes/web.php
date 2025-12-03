@@ -10,13 +10,17 @@ use App\Livewire\Backend\Role;
 use App\Livewire\Backend\User;
 use Illuminate\Support\Facades\Route;
 
-
-Route::get('/sso/redirect', [KeycloakController::class, 'redirect'])->name('sso.redirect');
-Route::get('/sso/callback', [KeycloakController::class, 'callback'])->name('sso.callback');
-Route::get('/sso/logout', [KeycloakController::class, 'logout'])->name('sso.logout');
-
 Route::any('/', [LandingController::class, 'landing'])->name('landing');
-// Route::any('/login', [LandingController::class, 'login'])->name('login');
+
+// Login
+Route::any('/login', [LandingController::class, 'login'])->name('login');
+
+// Login SSO Keycloak
+Route::get('/auth/redirect', [KeycloakController::class, 'redirect'])->name('sso.redirect');
+Route::get('/auth/callback', [KeycloakController::class, 'callback'])->name('sso.callback');
+Route::get('/auth/logout', [KeycloakController::class, 'logout'])->name('sso.logout');
+Route::get('/auth/logged-out', [KeycloakController::class, 'loggedOut']);
+Route::get('/auth/server/cek', [KeycloakController::class, 'cekServer']);
 
 Route::middleware(['sso.auth'])->group(function () {
     Route::get('/admin', Admin::class);
