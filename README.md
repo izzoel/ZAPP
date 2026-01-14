@@ -58,7 +58,17 @@ Template ini cocok untuk aplikasi **admin panel**, **sistem informasi**, **dashb
 
 ## Instalasi
 
+
 ### 1. Clone Repository
 ```bash
 git clone https://github.com/username/zapp.git
 cd zapp
+```
+
+## Install Dependency
+
+### 1. Clone Repository
+```bash
+git clone https://github.com/username/zapp.git
+cd zapp
+```
