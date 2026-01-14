@@ -34,7 +34,9 @@
                             <tr class="text-center">
                                 <th class="col-1">#</th>
                                 <th class="col-auto text-start">Role</th>
-                                <th class="col-1">Aksi</th>
+                                @can('d_' . Request::segment(1))
+                                    <th class="col-1">Aksi</th>
+                                @endcan
                             </tr>
                         </thead>
                         <tbody class="table-border-bottom-0">
@@ -80,12 +82,14 @@
                                             </div>
                                         @endif
                                     </td>
-                                    <td>
-                                        <div class="dropdown">
-                                            <button onclick="konfirmasiHapus({{ $role->id }}, '{{ $role->name }}')" type="button" class="btn btn-sm btn-danger rounded-1"
-                                                @cannot('d_' . Request::segment(1))disabled @endcan><strong>Hapus</strong></button>
-                                        </div>
-                                    </td>
+                                    @can('d_' . Request::segment(1))
+                                        <td>
+                                            <div class="dropdown">
+                                                <button onclick="konfirmasiHapus({{ $role->id }}, '{{ $role->name }}')" type="button"
+                                                    class="btn btn-sm btn-danger rounded-1"><strong>Hapus</strong></button>
+                                            </div>
+                                        </td>
+                                    @endcan
                                 </tr>
                             @endforeach
                         </tbody>

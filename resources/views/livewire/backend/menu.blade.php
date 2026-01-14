@@ -21,7 +21,7 @@
     <h4 class="fw-bold py-3 mb-2">
         <span class="text-muted fw-light">Setting /</span>
         {{ strtolower(Request::segment(1)) === 'livewire' ? $fallback : ucfirst(Request::segment(1)) }}
-        @can('c_' . strtolower($fallback))
+        @can('c_' . Request::segment(1))
             <button wire:click="tambah" type="button" class="btn btn-xs btn-primary rounded-1"><strong>&#10010;</strong></button>
         @endcan
     </h4>
@@ -41,7 +41,9 @@
                                     </a>
                                 </th>
                                 <th class="col-2">Parent</th>
-                                <th class="col-1">Aksi</th>
+                                @can('d_' . Request::segment(1))
+                                    <th class="col-1">Aksi</th>
+                                @endcan
                             </tr>
                         </thead>
                         <tbody class="table-border-bottom-0">
@@ -193,12 +195,21 @@
                                             </div>
                                         @endif
                                     </td>
-                                    <td>
+
+                                    @can('d_' . Request::segment(1))
+                                        <td>
+                                            <div class="dropdown">
+                                                <button onclick="konfirmasiHapus({{ $menu->id }}, '{{ 'Menu ' . addslashes($menu->menu) }}')" type="button"
+                                                    class="btn btn-sm btn-danger rounded-1"><strong>Hapus</strong></button>
+                                            </div>
+                                        </td>
+                                    @endcan
+                                    {{-- <td>
                                         <div class="dropdown">
                                             <button onclick="konfirmasiHapus({{ $menu->id }}, '{{ 'Menu ' . addslashes($menu->menu) }}')" type="button"
                                                 class="btn btn-sm btn-danger rounded-1" @cannot('d') disabled @endcannot><strong>Hapus</strong></button>
                                         </div>
-                                    </td>
+                                    </td> --}}
                                 </tr>
                                 @foreach ($menu->children as $child)
                                     <tr class="text-center">
@@ -287,12 +298,20 @@
                                                 </div>
                                             @endif
                                         </td>
-                                        <td>
+                                        @can('d_' . Request::segment(1))
+                                            <td>
+                                                <button onclick="konfirmasiHapus({{ $child->id }}, '{{ 'Menu ' . addslashes($child->menu) }}')" type="button"
+                                                    class="btn btn-sm btn-danger rounded-1">
+                                                    <strong>Hapus</strong>
+                                                </button>
+                                            </td>
+                                        @endcan
+                                        {{-- <td>
                                             <button onclick="konfirmasiHapus({{ $child->id }}, '{{ 'Menu ' . addslashes($child->menu) }}')" type="button"
                                                 class="btn btn-sm btn-danger rounded-1" @cannot('d') disabled @endcannot>
                                                 <strong>Hapus</strong>
                                             </button>
-                                        </td>
+                                        </td> --}}
                                     </tr>
                                 @endforeach
                             @endforeach

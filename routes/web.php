@@ -31,4 +31,7 @@ Route::middleware(['sso.auth'])->group(function () {
         Route::get('/role', Role::class);
         Route::get('/user', User::class);
     });
+
+    // =Dynamic Routes=
 });
+

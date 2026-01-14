@@ -13,6 +13,7 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Artisan;
+use Spatie\Permission\Models\Permission;
 use Symfony\Component\Process\Process;
 use Symfony\Component\Process\Exception\ProcessFailedException;
 
@@ -48,14 +49,13 @@ class Menu extends Component
 
     public function render()
     {
-        $data['menus'] = ModelMenu::with([
-            'children' => function ($q) {
-                $q->orderBy('urutan');
-            },
+        $data['menus'] = ModelMenu::with(['children' => function ($q) {
+            $q->orderBy('urutan');
+        },
         ])
-            ->whereNull('parent_id')
-            ->orderBy('urutan')
-            ->get();
+        ->whereNull('parent_id')
+        ->orderBy('urutan')
+        ->get();
         $data['fallback'] = class_basename(ModelMenu::class);
         return view('livewire.backend.menu', $data);
     }
@@ -67,11 +67,11 @@ class Menu extends Component
 
         $namaSegment = Str::studly(Str::afterLast($this->segment, '/'));
         $folder =
-            'Backend/' .
-            collect(explode('/', $this->segment))
-                ->slice(0, -1)
-                ->map(fn($s) => Str::studly($s))
-                ->implode('/');
+        'Backend/' .
+        collect(explode('/', $this->segment))
+        ->slice(0, -1)
+        ->map(fn($s) => Str::studly($s))
+        ->implode('/');
 
         $segmentPath = $folder ? $folder . $namaSegment : $namaSegment;
 
@@ -83,50 +83,96 @@ class Menu extends Component
             'parent_id' => $this->parent_id,
         ]);
 
-        // ModelAkses::create([
-        //     'id_menu' => ModelMenu::where('segment', $this->segment)->first()->id,
-        //     'id_role' => auth()->user()->id_role,
-        //     'create' => 1,
-        //     'read' => 1,
-        //     'update' => 1,
-        //     'delete' => 1,
-        // ]);
-
         if (!empty($this->segment)) {
-            $base_path = base_path();
-            $process = Process::fromShellCommandline('php artisan make:livewire ' . $segmentPath, $base_path);
-            $process->run();
+            $this->artisanLivewire($segmentPath);
 
-            $routeFile = base_path('routes/web.php');
-            $routeUrl = '/' . Str::of($this->segment)->lower();
-            $classPath = 'App\\Livewire\\' . str_replace('/', '\\', $segmentPath);
 
-            $routeLine = "    Route::get('{$routeUrl}', \\{$classPath}::class);";
+        }
+        $permissionCodes = ['c', 'r', 'u', 'd'];
 
-            $fileContents = File::get($routeFile);
+        $permissionNames = collect($permissionCodes)
+        ->map(fn ($code) => $code . '_' . Str::slug($this->segment, '_'))
+        ->toArray();
 
-            if (!Str::contains($fileContents, $routeLine)) {
-                $search = "Route::middleware('auth')->group(function () {";
-                $pos = strpos($fileContents, $search);
-
-                if ($pos !== false) {
-                    $insertPos = strpos($fileContents, "\n", $pos) + 1;
-                    $fileContents = substr_replace($fileContents, $routeLine . "\n", $insertPos, 0);
-
-                    File::put($routeFile, $fileContents);
-                } else {
-                    File::append($routeFile, "\n" . $routeLine);
-                }
-            }
-            if (!Str::contains(File::get($routeFile), $routeLine)) {
-                File::append($routeFile, "\n" . $routeLine);
-            }
+        foreach ($permissionNames as $permName) {
+            Permission::firstOrCreate([
+                'name'       => $permName,
+                'guard_name' => 'web',
+            ]);
         }
 
         $this->dispatch('toast_success', 'Menu ' . $this->menu . ' berhasil ditambahkan.');
         $this->dispatch('sidebar_reload');
         $this->reset(['tampil_tambah', 'urutan', 'menu', 'segment', 'icon', 'parent_id']);
     }
+
+    private function artisanLivewire($segmentPath)
+    {
+        $php = $this->directoryPhp();
+        $process = new Process(
+            [
+                $php,
+                base_path('artisan'),
+                'make:livewire',
+                $segmentPath
+            ],
+            base_path()
+        );
+
+        $process->run();
+
+        if (!$process->isSuccessful()) {
+            throw new \RuntimeException(
+                "Gagal menjalankan make:livewire.\n" .
+                "Exit Code: " . $process->getExitCode() . "\n" .
+                "Output: " . $process->getOutput() . "\n" .
+                "Error Output: " . $process->getErrorOutput()
+            );
+        }
+
+        $routeFile = base_path('routes/web.php');
+        $fileContents = File::get($routeFile);
+
+        $routeUrl = '/' . Str::of($this->segment)->lower();
+        $classPath = 'App\\Livewire\\' . str_replace('/', '\\', $segmentPath);
+        $routeLine = "Route::get('{$routeUrl}', \\{$classPath}::class);";
+
+        if (!Str::contains($fileContents, $routeLine)) {
+            $search = "=Dynamic Routes=";
+            $pos = strpos($fileContents, $search);
+            $indent = Str::repeat(' ', 4);
+
+            if ($pos !== false) {
+                $insertPos = strpos($fileContents, "\n", $pos) + 1;
+                $fileContents = substr_replace($fileContents, $indent.$routeLine . "\n", $insertPos, 0);
+
+                File::put($routeFile, $fileContents);
+            }
+            else {
+                File::append($routeFile, "\n" . $routeLine);
+            }
+        }
+
+    }
+
+    private function directoryPhp()
+    {
+        $candidates = [
+            '/usr/bin/php',
+            '/usr/local/bin/php',
+            '/opt/homebrew/bin/php',
+            exec('which php'),
+        ];
+
+        foreach ($candidates as $php) {
+            if ($php && file_exists($php) && is_executable($php)) {
+                return $php;
+            }
+        }
+
+        throw new \RuntimeException("PHP CLI binary not found.");
+    }
+
 
     #[On('hapusMenu')]
     public function hapus($id)
@@ -137,11 +183,11 @@ class Menu extends Component
         if (!empty($segment)) {
             $namaSegment = Str::studly(Str::afterLast($segment, '/'));
             $folder =
-                'Backend/' .
-                collect(explode('/', $segment))
-                    ->slice(0, -1)
-                    ->map(fn($s) => Str::studly($s))
-                    ->implode('/');
+            'Backend/' .
+            collect(explode('/', $segment))
+            ->slice(0, -1)
+            ->map(fn($s) => Str::studly($s))
+            ->implode('/');
 
             $segmentPath = $folder ? $folder . $namaSegment : $namaSegment;
 
@@ -195,9 +241,9 @@ class Menu extends Component
         if ($field === 'segment' && !empty($value)) {
             $namaSegment = Str::studly(Str::afterLast($value, '/'));
             $folder = collect(explode('/', $value))
-                ->slice(0, -1)
-                ->map(fn($s) => Str::studly($s))
-                ->implode('/');
+            ->slice(0, -1)
+            ->map(fn($s) => Str::studly($s))
+            ->implode('/');
 
             $segmentPath = $folder ? $folder . '/' . $namaSegment : $namaSegment;
 
@@ -235,4 +281,7 @@ class Menu extends Component
     {
         $this->tampil_tambah = !$this->tampil_tambah;
     }
+
+
+
 }
