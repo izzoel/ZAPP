@@ -17,6 +17,8 @@ class LandingController extends Controller
         $credentials = $request->only('name', 'password');
 
         if (Auth::attempt($credentials)) {
+             session(['login_via' => 'form']);
+
             return response()->json(['success' => true, 'message' => 'Sukses']);
         } else {
             return response()->json(['success' => false, 'message' => 'Gagal']);
