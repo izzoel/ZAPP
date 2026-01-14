@@ -49,6 +49,8 @@ class KeycloakController extends Controller
         // Login user
         Auth::login($user);
 
+        session(['login_via' => 'sso']);
+
         Log::info('SSO Login: ' . $user->email);
 
         // Ambil tujuan akhir dari session, default /admin
@@ -59,10 +61,16 @@ class KeycloakController extends Controller
 
     public function logout(Request $request)
     {
+        $loginVia = session('login_via');
+
         // logout lokal
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
+
+        if ($loginVia !== 'sso') {
+            return redirect('/');
+        }
 
         // halaman yang akan menerima post-logout dari Keycloak
         $postLogoutRedirect = url('/auth/logged-out');
