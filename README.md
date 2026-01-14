@@ -65,7 +65,7 @@ git clone https://github.com/username/zapp.git
 cd zapp
 ```
 
-### 12 Instalasi Depedensi
+### 2 Instalasi Depedensi
 ```bash
 composer install
 ```
